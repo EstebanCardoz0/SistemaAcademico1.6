@@ -7,6 +7,8 @@ import org.example.sistemaacad.service.AlumnoService;
 import org.example.sistemaacad.service.CalificacionService;
 import org.example.sistemaacad.service.MateriaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,73 +26,90 @@ public class CalificaciónController {
     private MateriaService materiaService;
 
     @PostMapping("/crear")
-    public String crearCalificacion(@RequestBody Calificacion calificacion) {
-        Alumno alumno = alumnoService.obtenerAlumnoPorLegajo(calificacion.getAlumno().getLegajo());
-        Materia materia = materiaService.obtenerMateriaPorId(calificacion.getMateria().getId());
-        calificacion.setAlumno(alumno);
-        calificacion.setMateria(materia);
-        calificacionService.crearCalificacion(calificacion);
-        return "La calificación de " + alumno.getNombre() + " " + alumno.getApellido()
+    public ResponseEntity<?> crearCalificacion(@RequestBody Calificacion calificacion) {
+        try {
+            Alumno alumno = alumnoService.obtenerAlumnoPorLegajo(calificacion.getAlumno().getLegajo());
+            Materia materia = materiaService.obtenerMateriaPorId(calificacion.getMateria().getId());
+            calificacion.setAlumno(alumno);
+            calificacion.setMateria(materia);
+            calificacionService.crearCalificacion(calificacion);
+            String mensaje = "La calificación de " + alumno.getNombre() + " " + alumno.getApellido()
                 + " para " + materia.getNombre() + " fue creada correctamente";
+            return ResponseEntity.status(HttpStatus.CREATED).body(mensaje);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error al crear la calificación: " + e.getMessage());
+        }
     }
 
-
     @GetMapping("/traer")
-    public List<Calificacion> obtenerTodasLasCalificaciones() {
-        return calificacionService.obtenerTodasLasCalificaciones();
+    public ResponseEntity<?> obtenerTodasLasCalificaciones() {
+        try {
+            List<Calificacion> calificaciones = calificacionService.obtenerTodasLasCalificaciones();
+            return ResponseEntity.ok(calificaciones);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error al obtener las calificaciones: " + e.getMessage());
+        }
     }
 
     @GetMapping("/traer/{id}")
-    public Calificacion obtenerCalificacion(@PathVariable Long id) {
-        return calificacionService.obtenerCalificacionPorId(id);
+    public ResponseEntity<?> obtenerCalificacion(@PathVariable Long id) {
+        try {
+            Calificacion calificacion = calificacionService.obtenerCalificacionPorId(id);
+            return ResponseEntity.ok(calificacion);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Error al obtener la calificación: " + e.getMessage());
+        }
     }
-
 
     @DeleteMapping("/borrar/{id}")
-    public String eliminarCalificacion(@PathVariable Long id) {
-        String nombre = calificacionService.obtenerCalificacionPorId(id).getAlumno().getNombre();
-        String apellido = calificacionService.obtenerCalificacionPorId(id).getAlumno().getApellido();
-        String materia = calificacionService.obtenerCalificacionPorId(id).getMateria().getNombre();
-        calificacionService.eliminarCalificacion(id);
-        return "La calificación de " + nombre + " " + apellido + " para " + materia + " fue eliminada correctamente";
+    public ResponseEntity<?> eliminarCalificacion(@PathVariable Long id) {
+        try {
+            Calificacion calificacion = calificacionService.obtenerCalificacionPorId(id);
+            String mensaje = "La calificación de " + calificacion.getAlumno().getNombre() + 
+                " " + calificacion.getAlumno().getApellido() + 
+                " para " + calificacion.getMateria().getNombre() + 
+                " fue eliminada correctamente";
+            calificacionService.eliminarCalificacion(id);
+            return ResponseEntity.ok(mensaje);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Error al eliminar la calificación: " + e.getMessage());
+        }
     }
 
-//    @PutMapping("/editar/{id}")
-//    public Calificacion editarCalificacion(@PathVariable Long id,
-//                                           @RequestBody Calificacion detallesCalificacion) {
-//        Calificacion calificacion = calificacionService.obtenerCalificacionPorId(id);
-//        if (detallesCalificacion.getNota() != null) calificacion.setNota(detallesCalificacion.getNota());
-//        if (detallesCalificacion.getAlumno().getLegajo() != null) {
-//            Alumno alumno = alumnoService.obtenerAlumnoPorLegajo(nuevoAlumnoId);
-//            calificacion.setAlumno(alumno);
-//        }
-//        if (nuevaMateriaId != null) {
-//            Materia materia = materiaService.obtenerMateriaPorId(nuevaMateriaId);
-//            calificacion.setMateria(materia);
-//        }
-//        calificacionService.actualizarCalificacion(id, calificacion);
-//        return calificacionService.obtenerCalificacionPorId(id);
-//    }
-
     @PutMapping("/editar/{id}")
-    public Calificacion editarCalificacion(@PathVariable Long id, @RequestBody Calificacion detallesCalificacion) {
-        Calificacion calificacion = calificacionService.obtenerCalificacionPorId(id);
-        if (detallesCalificacion.getNota() != null) calificacion.setNota(detallesCalificacion.getNota());
-        if (detallesCalificacion.getAlumno() != null) {
-            Alumno alumno = alumnoService.obtenerAlumnoPorLegajo(detallesCalificacion.getAlumno().getLegajo());
-            calificacion.setAlumno(alumno);
+    public ResponseEntity<?> editarCalificacion(@PathVariable Long id, @RequestBody Calificacion detallesCalificacion) {
+        try {
+            Calificacion calificacion = calificacionService.obtenerCalificacionPorId(id);
+            if (detallesCalificacion.getNota() != null) calificacion.setNota(detallesCalificacion.getNota());
+            if (detallesCalificacion.getAlumno() != null) {
+                Alumno alumno = alumnoService.obtenerAlumnoPorLegajo(detallesCalificacion.getAlumno().getLegajo());
+                calificacion.setAlumno(alumno);
+            }
+            if (detallesCalificacion.getMateria() != null) {
+                Materia materia = materiaService.obtenerMateriaPorId(detallesCalificacion.getMateria().getId());
+                calificacion.setMateria(materia);
+            }
+            calificacionService.actualizarCalificacion(id, calificacion);
+            return ResponseEntity.ok(calificacionService.obtenerCalificacionPorId(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error al editar la calificación: " + e.getMessage());
         }
-        if (detallesCalificacion.getMateria() != null) {
-            Materia materia = materiaService.obtenerMateriaPorId(detallesCalificacion.getMateria().getId());
-            calificacion.setMateria(materia);
-        }
-        calificacionService.actualizarCalificacion(id, calificacion);
-        return calificacionService.obtenerCalificacionPorId(id);
     }
 
     @GetMapping("/alumno/{legajo}")
-    public String obtenerCalificacionesYPromediosPorAlumno(@PathVariable Long legajo) {
-        return calificacionService.calificacionesPorAlumno(legajo);
+    public ResponseEntity<?> obtenerCalificacionesYPromediosPorAlumno(@PathVariable Long legajo) {
+        try {   
+            String resultado = calificacionService.calificacionesPorAlumno(legajo);
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Error al obtener las calificaciones y promedios por alumno: " + e.getMessage());
+        }
     }
 
 }

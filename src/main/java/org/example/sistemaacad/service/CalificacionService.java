@@ -5,7 +5,6 @@ import org.example.sistemaacad.entity.Calificacion;
 import org.example.sistemaacad.entity.Materia;
 import org.example.sistemaacad.repository.AlumnoRepository;
 import org.example.sistemaacad.repository.CalificacionRepository;
-import org.example.sistemaacad.repository.MateriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
