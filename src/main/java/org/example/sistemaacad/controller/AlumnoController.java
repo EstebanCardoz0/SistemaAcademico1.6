@@ -74,7 +74,7 @@ public class AlumnoController {
         }
     }
 
-    @PostMapping("/agregarmateria")
+    @PostMapping("/materia")
     public ResponseEntity<String> agregarMateriaAAlumno(@RequestParam Long legajo, @RequestParam Long materiaId) {
         try {
             String nombre = alumnoService.obtenerAlumnoPorLegajo(legajo).getNombre();

@@ -79,7 +79,7 @@ public class MateriaController {
         }
     }
 
-    @PostMapping("/agregarprofesor")
+    @PostMapping("/profesor")
     public ResponseEntity<?> agregarProfesorAMateria(@RequestParam Long materiaId, @RequestParam Long profesorId) {
         try {
             String materia = materiaService.obtenerMateriaPorId(materiaId).getNombre();
